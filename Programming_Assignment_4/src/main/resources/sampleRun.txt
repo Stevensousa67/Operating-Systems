@@ -1,0 +1,114 @@
+Microsoft Windows XP [Version 5.1.2600]
+(C) Copyright 1985-2001 Microsoft Corp.
+
+C:\Documents and Settings\sattar>cd \
+
+C:\>cd testing
+
+C:\testing>cd Ug
+
+C:\testing\UG>java Boot 1 FastDisk 1024 FileTester tester.dat
+Restored 512 bytes from file DISK
+Boot: Starting kernel.
+Kernel: Disk is 1024 blocks
+Kernel: Disk cache size is 1 blocks
+Kernel: Loading initial program.
+--> format
+--> create file1
+--> create yourMOM
+--> create thePie
+--> create money
+--> create happiness
+--> ls
+
+   file1
+   yourMOM
+   thePie
+   money
+   happiness
+
+--> write thePie Eat me!
+--> read thePie
+Eat me!
+--> dir
+
+   file1
+   yourMOM
+   thePie
+   money
+   happiness
+
+--> write money Wish I Had Some.
+--> read money
+Wish I Had Some.
+--> ls
+
+   file1
+   yourMOM
+   thePie
+   money
+   happiness
+
+--> write yourMOM your MOMA knows.
+--> read yourMOM
+your MOMA knows.
+--> dir
+
+   file1
+   yourMOM
+   thePie
+   money
+   happiness
+
+--> delete yourMOM
+--> ls
+
+   file1
+   thePie
+   money
+   happiness
+
+--> delete thePie
+--> dir
+
+   file1
+   money
+   happiness
+
+--> create file2
+--> create yourMOM1
+--> create thePie2
+--> create money1
+--> create happiness2
+--> ls
+
+   file1
+   money
+   happiness
+   file2
+   yourMOM1
+   thePie2
+   money1
+   happiness2
+
+--> write yourMOM1 your MOMA knows.536543547635745747
+--> write yourMOM1 ####################################
+--> read yourMOM1
+####################################
+--> ls
+
+   file1
+   money
+   happiness
+   file2
+   yourMOM1
+   thePie2
+   money1
+   happiness2
+
+Kernel: FileTester tester.dat has terminated.
+Saving contents to DISK file...
+45 read operations and 31 write operations performed
+Boot: Kernel has stopped.
+
+C:\testing\UG>

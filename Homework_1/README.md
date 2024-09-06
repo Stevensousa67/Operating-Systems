@@ -1,1 +1,0 @@
-This is a boilerplate for an upcoming Homework in Operating Systems.

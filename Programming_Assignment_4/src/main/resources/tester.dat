@@ -1,0 +1,35 @@
+format
+create file1
+create yourMOM
+create thePie
+create money
+create happiness
+ls
+
+write thePie Eat me!
+read thePie
+dir
+
+write money Wish I Had Some.
+read money
+ls
+
+write yourMOM your MOMA knows.
+read yourMOM
+dir
+
+delete yourMOM
+ls
+
+delete thePie
+dir
+create file2
+create yourMOM1
+create thePie2
+create money1
+create happiness2
+ls
+write yourMOM1 your MOMA knows.536543547635745747
+write yourMOM1 ####################################
+read yourMOM1
+ls
