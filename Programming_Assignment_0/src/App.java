@@ -1,4 +1,9 @@
 
+/* Author: Steven Sousa
+ * Date: 9/12/2020
+ * Bridgewater State University - COMP350-002 - Prof. Abdul Sattar
+ * Description: This program reads a text file, counts word occurrences, stores the line numbers where the words appear, and prints a table with the data.
+*/
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
