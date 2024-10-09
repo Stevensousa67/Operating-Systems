@@ -1,18 +1,8 @@
 ## Getting Started
+Welcome to Project Assignment 0 - Java Refresher
 
-Welcome to the VS Code Java world. Here is a guideline to help you get started to write Java code in Visual Studio Code.
+## Objectives
+This assingment has the objective of giving students a Java refresher by opening a text file and displaying on the terminal all words sorted alphabetically, the amount of times a word appeared in the file, and the line numbers where each word appeared in.
 
-## Folder Structure
-
-The workspace contains two folders by default, where:
-
-- `src`: the folder to maintain sources
-- `lib`: the folder to maintain dependencies
-
-Meanwhile, the compiled output files will be generated in the `bin` folder by default.
-
-> If you want to customize the folder structure, open `.vscode/settings.json` and update the related settings there.
-
-## Dependency Management
-
-The `JAVA PROJECTS` view allows you to manage your dependencies. More details can be found [here](https://github.com/microsoft/vscode-java-dependency#manage-dependencies).
+## How To Tun
+Simply navigate to src and run the App.java file in your preferred IDE or from the terminal/command line. The text file is located under the resources folder and is necessary to be within the project.
