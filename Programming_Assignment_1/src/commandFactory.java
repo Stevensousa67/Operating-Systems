@@ -24,17 +24,15 @@ public class commandFactory {
             case "history" -> commandFunctions.history(cmdHistory);
             case "ls" -> commandFunctions.ls(cmd);
             case "pwd" -> commandFunctions.pwd(cmd);
-            case "cd" -> System.out.println("myShell> cd command found. myShell closing.\n");
-            case "mkdir" -> System.out.println("myShell> mkdir command found. myShell closing.\n");
-            case "rmdir" -> System.out.println("myShell> rmdir command found. myShell closing.\n");
-            case "mv" -> System.out.println("myShell> mv command found. myShell closing.\n");
-            case "cp" -> System.out.println("myShell> cp command found. myShell closing.\n");
-            case "cat" -> System.out.println("myShell> cat command found. myShell closing.\n");
-            case "more" -> System.out.println("myShell> more command found. myShell closing.\n");
-            case "rm" -> System.out.println("myShell> rm command found. myShell closing.\n");
-            case "args" -> System.out.println("myShell> args command found. myShell closing.\n");
-            case "date" -> System.out.println("myShell> date command found. myShell closing.\n");
-            case "help" -> System.out.println("myShell> help command found. myShell closing.\n");
+            case "cd" -> commandFunctions.cd(cmd);
+            case "mkdir" -> commandFunctions.mkdir(cmd);
+            case "rmdir" -> commandFunctions.rmdir(cmd);
+            case "mv" -> commandFunctions.mv(cmd);
+            case "cp" -> commandFunctions.cp(cmd);
+            case "cat" -> commandFunctions.cat(cmd);
+            case "more" -> commandFunctions.more(cmd);
+            case "rm" -> commandFunctions.rm(cmd);
+            case "date" -> commandFunctions.date(cmd);
             default -> System.out.println("myShell> Command not found. myShell closing.\n");
         }
         
