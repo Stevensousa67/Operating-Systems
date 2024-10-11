@@ -29,7 +29,7 @@ public class commandFactory {
             case "rmdir" -> commandFunctions.rmdir(cmd);
             case "mv" -> commandFunctions.mv(cmd);
             case "cp" -> commandFunctions.cp(cmd);
-            case "cat" -> commandFunctions.cat(cmd);
+            case "cat" -> commandFunctions.cat(cmdHistory.get(cmdHistory.size() - 1)); // pass the last command in the history list
             case "more" -> commandFunctions.more(cmd);
             case "rm" -> commandFunctions.rm(cmd);
             case "date" -> commandFunctions.date(cmd);

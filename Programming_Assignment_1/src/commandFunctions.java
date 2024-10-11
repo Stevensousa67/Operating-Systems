@@ -65,7 +65,31 @@ public class commandFunctions {
     }
 
     public static void cat(String cmd) {
+        String[] instruction = cmd.split(" ");
 
+        // Check if 'cat' has a file to read
+        if (instruction.length == 1) {
+            System.out.println("myShell> No file specified.");
+        } else {
+            // Iterate over multiple files, if requested (cat file1 file2 ...)
+            for (int i = 1; i < instruction.length; i++) {
+                try {
+                    // Assuming files are located in the "src/resources" directory
+                    File file = new File("Programming_Assignment_1/src/resources/" + instruction[i]);
+
+                    try ( // BufferedReader to read the file
+                            BufferedReader reader = new BufferedReader(new FileReader(file))) {
+                        String line;
+                        // Read the file line by line
+                        while ((line = reader.readLine()) != null) {
+                            System.out.println(line);
+                        }
+                    }
+                } catch (IOException e) {
+                    System.out.println("myShell> File not found: " + instruction[i]);
+                }
+            }
+        }
     }
 
     public static void more(String cmd) {
