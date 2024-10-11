@@ -1,4 +1,5 @@
 import java.io.*;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.*;
@@ -6,6 +7,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 public class commandFunctions {
+
+    public static Path currentDirectory = Paths.get(".").toAbsolutePath().normalize(); // Shared current working directory for all methods
 
     public static void history(List<String> cmdHistory) {
         System.out.println();
@@ -23,45 +26,50 @@ public class commandFunctions {
     }
 
     public static void ls(String cmd) {
-        File curDir = new File("./Programming_Assignment_1/src");
+        File curDir = currentDirectory.toFile();  // Use the tracked current directory
         File[] filesList = curDir.listFiles();
-        for (File f : filesList) {
-            if (f.isDirectory()) {
-                System.out.println(f.getName());
+        if (filesList != null) {
+            for (File f : filesList) {
+                if (f.isDirectory()) {
+                    System.out.println(f.getName());
+                }
+                if (f.isFile()) {
+                    System.out.println(f.getName());
+                }
             }
-            if (f.isFile()) {
-                System.out.println(f.getName());
-            }
+        } else {
+            System.out.println("myShell> Cannot access current directory.");
         }
     }
     
     public static void pwd(String cmd) {
-        try {
-            Path currentPath = Paths.get(".").toRealPath();
-            System.out.println(currentPath.toString());
-        } catch (IOException e) {
-            System.err.println("Error retrieving current directory: " + e.getMessage());
+        System.out.println(currentDirectory.toString());
+    }
+
+    public static void cd(String cmd) throws IOException {
+        String[] instruction = cmd.split(" ");
+
+        if (instruction.length > 1) {
+            if (instruction[1].equals("..")) {
+                // Go up one directory
+                currentDirectory = currentDirectory.getParent();
+                if (currentDirectory == null) {
+                    currentDirectory = Paths.get("/").toAbsolutePath().normalize(); // Handle root case
+                }
+            } else {
+                // Resolve the new path
+                Path newPath = currentDirectory.resolve(instruction[1]).normalize();
+
+                // Check if the new path is a directory and exists
+                if (Files.isDirectory(newPath)) {
+                    currentDirectory = newPath;
+                } else {
+                    System.out.println("myShell> Directory does not exist: " + instruction[1]);
+                }
+            }
+        } else {
+            System.out.println("myShell> No directory specified.");
         }
-    }
-
-    public static void cd(String cmd) {
-
-    }
-    
-    public static void mkdir(String cmd) {
-
-    }
-
-    public static void rmdir(String cmd) {
-
-    }
-
-    public static void mv(String cmd) {
-
-    }
-
-    public static void cp(String cmd) {
-
     }
 
     public static void cat(String cmd) {
@@ -74,11 +82,10 @@ public class commandFunctions {
             // Iterate over multiple files, if requested (cat file1 file2 ...)
             for (int i = 1; i < instruction.length; i++) {
                 try {
-                    // Assuming files are located in the "src/resources" directory
-                    File file = new File("Programming_Assignment_1/src/resources/" + instruction[i]);
+                    // Resolve the file path relative to the current directory
+                    File file = currentDirectory.resolve("resources/" + instruction[i]).toFile();
 
-                    try ( // BufferedReader to read the file
-                            BufferedReader reader = new BufferedReader(new FileReader(file))) {
+                    try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
                         String line;
                         // Read the file line by line
                         while ((line = reader.readLine()) != null) {
@@ -90,14 +97,6 @@ public class commandFunctions {
                 }
             }
         }
-    }
-
-    public static void more(String cmd) {
-
-    }
-
-    public static void rm(String cmd) {
-
     }
 
     public static void date(String cmd) {

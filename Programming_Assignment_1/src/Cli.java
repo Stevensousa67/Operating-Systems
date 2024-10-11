@@ -17,7 +17,7 @@ public class Cli {
             boolean loopFlag = true;
             try {
                 while (loopFlag) {
-                    System.out.print("myShell> ");
+                    System.out.print(commandFunctions.currentDirectory + "/myShell> ");
                     commandLine = getCommandLine.nextLine();
                     String[] commands = commandLine.split(" ");
                     commandFactory.buildCommand(commands);
