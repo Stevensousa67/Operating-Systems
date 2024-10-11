@@ -20,8 +20,7 @@ public class Cli {
                 while (loopFlag) {
                     System.out.print(commandFunctions.currentDirectory + "/myShell> ");
                     commandLine = getCommandLine.nextLine();
-                    String[] commands = commandLine.split(" ");
-                    commandFactory.buildCommand(commands);
+                    commandFactory.buildCommand(commandLine);
                 }
             } catch (IOException e) {
                 System.out.println("\n\nInterrupt was detected. myShell closing.");
