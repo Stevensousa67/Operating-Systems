@@ -75,27 +75,71 @@ public class commandFunctions {
     public static void cat(String cmd) {
         String[] instruction = cmd.split(" ");
 
-        // Check if 'cat' has a file to read
-        if (instruction.length == 1) {
+        // Check if 'cat' has files to read
+        if (instruction.length < 2) {
             System.out.println("myShell> No file specified.");
-        } else {
-            // Iterate over multiple files, if requested (cat file1 file2 ...)
-            for (int i = 1; i < instruction.length; i++) {
-                try {
-                    // Resolve the file path relative to the current directory
-                    File file = currentDirectory.resolve("resources/" + instruction[i]).toFile();
+            return; // Exit the method
+        }
 
-                    try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
-                        String line;
-                        // Read the file line by line
-                        while ((line = reader.readLine()) != null) {
-                            System.out.println(line);
-                        }
+        // Initialize variables for grep
+        String grepSearchString = null;
+        boolean usingGrep = false;
+        StringBuilder combinedFileContent = new StringBuilder();
+
+        // Check if the command contains a pipe '|grep'
+        for (int i = 1; i < instruction.length; i++) {
+            if (instruction[i].equals("|grep")) {
+                usingGrep = true;
+
+                // Ensure there's a search string after '|grep'
+                if (i + 1 < instruction.length) {
+                    grepSearchString = instruction[i + 1];
+                } else {
+                    System.out.println("myShell> No search string provided for grep.");
+                    return;
+                }
+                break; // Exit loop after finding the pipe
+            }
+        }
+
+        // If using 'grep', check if only one file is provided
+        int fileCount = usingGrep ? instruction.length - 3 : instruction.length - 1;  // Exclude command, grep, and search term
+        if (usingGrep && fileCount > 1) {
+            System.out.println("myShell> grep can only be used with one file.");
+            return; 
+        }
+
+        // Read the file(s)
+        for (int i = 1; i < instruction.length; i++) {
+            if (instruction[i].equals("|grep")) {
+                break;  // Stop processing files when we reach the pipe
+            }
+            String fileToRead = instruction[i];
+
+            try {
+                File file = commandFunctions.currentDirectory.resolve("resources/" + fileToRead).toFile();
+                try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        combinedFileContent.append(line).append("\n");
                     }
-                } catch (IOException e) {
-                    System.out.println("myShell> File not found: " + instruction[i]);
+                }
+            } catch (IOException e) {
+                System.out.println("myShell> File not found: " + fileToRead);
+            }
+        }
+
+        // Process with grep if needed
+        if (usingGrep && grepSearchString != null) {
+            String[] lines = combinedFileContent.toString().split("\n");
+            for (String line : lines) {
+                if (line.contains(grepSearchString)) {
+                    System.out.println(line);  // Print matching line
                 }
             }
+        } else {
+            // If no grep, print the entire combined content of all files
+            System.out.println(combinedFileContent.toString());
         }
     }
 

@@ -6,6 +6,7 @@
  * Course: COMP 350-001
  */
 
+import java.io.IOException;
 import java.util.Scanner;
 
 public class Cli {
@@ -22,7 +23,7 @@ public class Cli {
                     String[] commands = commandLine.split(" ");
                     commandFactory.buildCommand(commands);
                 }
-            } catch (Exception e) {
+            } catch (IOException e) {
                 System.out.println("\n\nInterrupt was detected. myShell closing.");
                 System.exit(0);
             }
