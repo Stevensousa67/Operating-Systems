@@ -82,7 +82,7 @@ public class commandFunctions {
         boolean usingLc = false;
         StringBuilder combinedFileContent = new StringBuilder();
 
-        // Process the first command (the one before any pipes)
+        // Process the first command (the one before any pipes, i.e., cat and files)
         String[] catCommand = instruction[0].trim().split(" ");
 
         // Check if 'cat' has files to read
@@ -117,14 +117,16 @@ public class commandFunctions {
         // Process the subsequent commands (grep and lc)
         for (int i = 1; i < instruction.length; i++) {
             String commandPart = instruction[i].trim();
-            if (commandPart.startsWith("grep")) {
+            String lowerCasedCommandPart = commandPart.toLowerCase();  // Lowercase the command part for comparison
+
+            if (lowerCasedCommandPart.startsWith("grep")) {
                 usingGrep = true; // We are using grep
                 String[] grepCommand = commandPart.split(" ");
                 if (grepCommand.length < 2) {
                     System.out.println("myShell> No search string provided for grep.");
                     return;
                 }
-                grepSearchString = grepCommand[1];  // Get the search string for grep
+                grepSearchString = grepCommand[1];  // Get the search string for grep, preserving case
 
                 // Ensure only one file is passed to grep
                 if (fileCount > 1) {
@@ -136,12 +138,12 @@ public class commandFunctions {
                 String[] lines = combinedFileContent.toString().split("\n");
                 StringBuilder grepResult = new StringBuilder();
                 for (String line : lines) {
-                    if (line.contains(grepSearchString)) {
+                    if (line.contains(grepSearchString)) {  // Case-sensitive search string
                         grepResult.append(line).append("\n");
                     }
                 }
                 combinedFileContent = grepResult;  // Update to the filtered result
-            } else if (commandPart.equals("lc")) {
+            } else if (lowerCasedCommandPart.equals("lc")) {
                 usingLc = true; // We are using lc here
             }
         }
@@ -182,6 +184,7 @@ public class commandFunctions {
         String cmd = cmdPlusArgsArray[0].toLowerCase();
 
         switch (cmd) {
+            case "history" -> commandFunctions.history(commandFactory.cmdHistory);
             case "exit" -> commandFunctions.exit(cmd);
             case "ls" -> commandFunctions.ls(cmd);
             case "pwd" -> commandFunctions.pwd(cmd);
