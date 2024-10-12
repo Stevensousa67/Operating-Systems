@@ -7,7 +7,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 public class commandFunctions {
-
+    
     public static Path currentDirectory = Paths.get(".").toAbsolutePath().normalize(); // Shared current working directory for all methods
 
     public static void history(List<String> cmdHistory) {
@@ -77,7 +77,7 @@ public class commandFunctions {
         String[] instruction = cmd.split("\\|"); // Use pipe as a separator
 
         // Initialize variables for grep and lc
-        String grepSearchString = null;
+        String grepSearchString;
         boolean usingGrep = false;
         boolean usingLc = false;
         StringBuilder combinedFileContent = new StringBuilder();
@@ -164,46 +164,31 @@ public class commandFunctions {
     }
 
     public static void reRunLastNCommands(String cmd, List<String> cmdHistory) throws IOException {
-        // Get the number of commands to rerun
         int n = Integer.parseInt(cmd.substring(1));
-        // If n > history size, rerun entire history starting at the end of the list
         if (n > cmdHistory.size()) {
             n = cmdHistory.size();
         }
 
-        // Execute the last n commands from history
-        for (int i = cmdHistory.size() - n; i < cmdHistory.size(); i++) {
-            // Directly call the buildCommand method without logging this command
-            executeCommandFromHistory(cmdHistory.get(i)); // Execute the command from history
+        // Start from the most recent command and go backwards
+        for (int i = cmdHistory.size() - 1; i >= cmdHistory.size() - n; i--) {
+            System.out.println("Executing command: " + cmdHistory.get(i));
+            executeCommandFromHistory(cmdHistory.get(i));
+            System.out.println();
         }
     }
 
     private static void executeCommandFromHistory(String command) throws IOException {
-        // Directly execute the command from history without adding it to history again
-        // Here you can parse the command and call respective functions, just like in buildCommand
-
-        // Breakdown command and argument(s)
         String[] cmdPlusArgsArray = command.split(" ");
         String cmd = cmdPlusArgsArray[0].toLowerCase();
-        String[] args = new String[cmdPlusArgsArray.length - 1];
-        System.arraycopy(cmdPlusArgsArray, 1, args, 0, args.length);
 
-        // Check what the command is and call the proper function passing along any arguments
         switch (cmd) {
-            case "exit" ->
-                commandFunctions.exit(cmd);
-            case "ls" ->
-                commandFunctions.ls(cmd);
-            case "pwd" ->
-                commandFunctions.pwd(cmd);
-            case "cd" ->
-                commandFunctions.cd(commandFactory.cmdHistory.get(commandFactory.cmdHistory.size() - 1)); // pass the last command in the history list
-            case "cat" ->
-                commandFunctions.cat(commandFactory.cmdHistory.get(commandFactory.cmdHistory.size() - 1)); // pass the last command in the history list
-            case "date" ->
-                commandFunctions.date(cmd);
-            default ->
-                System.out.println("myShell> Command not found. myShell closing.\n");
+            case "exit" -> commandFunctions.exit(cmd);
+            case "ls" -> commandFunctions.ls(cmd);
+            case "pwd" -> commandFunctions.pwd(cmd);
+            case "cd" -> commandFunctions.cd(command);
+            case "cat" -> commandFunctions.cat(command);
+            case "date" -> commandFunctions.date(cmd);
+            default -> System.out.println("myShell> Command not found. myShell closing.\n");
         }
     }
 
