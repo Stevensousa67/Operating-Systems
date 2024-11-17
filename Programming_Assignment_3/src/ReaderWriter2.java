@@ -1,7 +1,6 @@
 //ReaderWriter.java synchronized but without any policy between readers & Writers
 
 import java.io.*;
-import java.util.*;
 
 public class ReaderWriter2
 {

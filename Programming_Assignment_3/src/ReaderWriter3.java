@@ -1,7 +1,6 @@
 //ReaderWriter.java :writer starts first
 
 import java.io.*;
-import java.util.*;
 
 public class ReaderWriter3
 {
