@@ -3,23 +3,25 @@
 import java.lang.reflect.*;
 import java.util.*;
 
-/** A bootstrap program for the MiniKernel.
+/**
+ * A bootstrap program for the MiniKernel.
  * <p>
  * This program creates a Disk, and launches the kernel by calling
- * the POWER_ON interrupt.  When the Kernel returns from the interrupt,
+ * the POWER_ON interrupt. When the Kernel returns from the interrupt,
  * we assume it wants to shut down.
  * <p>
  * The program expects four or more command-line arguments:
  * <ul>
- * <li> a numeric parameter to pass to the Kernel's POWER_ON interrupt.
- *      The kernel stores this number in its bufferSize field.
- * <li> the name of a class that implements the disk,
- * <li> the size of the disk, in blocks,
- * <li> the name of shell program, and
- *      any arguments to the shell program.
+ * <li>a numeric parameter to pass to the Kernel's POWER_ON interrupt.
+ * The kernel stores this number in its bufferSize field.
+ * <li>the name of a class that implements the disk,
+ * <li>the size of the disk, in blocks,
+ * <li>the name of shell program, and
+ * any arguments to the shell program.
  * </ul>
  * <p>
  * An example invocation is
+ * 
  * <pre>
  *    java Boot 10 Disk 100 Shell
  * </pre>
@@ -28,7 +30,9 @@ import java.util.*;
  * @see Disk
  */
 public class Boot {
-    /** Prints a message.
+    /**
+     * Prints a message.
+     * 
      * @param msg the message to print.
      */
     private static void pl(Object msg) {
@@ -38,12 +42,14 @@ public class Boot {
     /** Prints a help message and exits. */
     private static void usage() {
         pl("usage: java Boot"
-            + " <cacheSize> <diskName> <diskSize> <shell>"
-            + " [ <shell parameters> ... ]");
+                + " <cacheSize> <diskName> <diskSize> <shell>"
+                + " [ <shell parameters> ... ]");
         System.exit(-1);
     } // usage
 
-    /** The main program.
+    /**
+     * The main program.
+     * 
      * @param args the command-line arguments
      */
     public static void main(String args[]) {
@@ -63,10 +69,9 @@ public class Boot {
         Object disk = null;
         try {
             Class diskClass = Class.forName(diskName);
-            Constructor ctor
-                = diskClass.getConstructor(new Class[] { Integer.TYPE });
+            Constructor ctor = diskClass.getConstructor(new Class[] { Integer.TYPE });
             disk = ctor.newInstance(new Object[] { new Integer(diskSize) });
-            if (! (disk instanceof Disk)) {
+            if (!(disk instanceof Disk)) {
                 pl(diskName + " is not a subclass of Disk");
                 usage();
             }
@@ -89,7 +94,7 @@ public class Boot {
         pl("Boot: Starting kernel.");
 
         Kernel.interrupt(Kernel.INTERRUPT_POWER_ON,
-                         cacheSize, 0, disk, shellCommand, null);
+                cacheSize, 0, disk, shellCommand, null);
 
         System.out.println("Boot: Kernel has stopped.");
         System.exit(0);

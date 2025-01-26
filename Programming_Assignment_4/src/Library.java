@@ -79,4 +79,95 @@ public class Library {
         return Kernel.interrupt(Kernel.INTERRUPT_USER,
             Kernel.SYSCALL_JOIN, pid, null, null, null);
     } // join
+
+    /**
+     * Formats the disk. If the disk is already formatted, this system call
+     * will destroy all data on it.
+     * @return 0 on sucess and -1 on failure
+     */
+    public static int format() {
+        int rv = Kernel.interrupt(Kernel.INTERRUPT_USER, Kernel.FORMAT_DISK, 0, null, null, null);
+        if (rv == 0) {
+            System.out.println("\nDisk formatted successfully.");
+        } else {
+            System.out.println("\nDisk format failed.");
+        }
+        return rv;
+    }
+    
+    /**
+     * Creates a new empty file (size 0).
+     * @param fname the same name of the new file being created. 
+     * @return 0 on success and -1 on failure. 
+     */
+    public static int create(String fname) {
+        int rv = Kernel.interrupt(Kernel.INTERRUPT_USER, Kernel.CREATE_FILE, 0, fname, null, null);
+        if (rv == 0) {
+            System.out.println("\nFile " + fname + " created successfully.");
+        } else {
+            System.out.println("\nFile " + fname + " creation failed.");
+        }
+        return rv;
+    }
+
+    /**
+     * Reads from a file.
+     * @param fname the name of the file to read from.
+     * @param buffer the destination for the data. 
+     * @return 0 on success and -1 on failure. 
+     */
+    public static int read(String fname, byte[] buffer) {
+        int rv = Kernel.interrupt(Kernel.INTERRUPT_USER, Kernel.READ_FILE, 0, fname, buffer, null);
+        if (rv == 0) {
+            System.out.println("\nFile " + fname + " read successfully.");
+        } else {
+            System.out.println("\nFile " + fname + " read failed.");
+        }
+        return rv;
+    }
+
+    /**
+     * Writes to a file.
+     * @param fname the name of the file to write to. 
+     * @param buffer the source of the data. 
+     * @return 0 on success and -1 on failure. 
+     */
+    public static int write(String fname, byte[] buffer) {
+        int rv = Kernel.interrupt(Kernel.INTERRUPT_USER, Kernel.WRITE_FILE, 0, fname, buffer, null);
+        if (rv == 0) {
+            System.out.println("\nFile " + fname + " written to successfully.");
+        } else {
+            System.out.println("\nFile " + fname + " write failed.");
+        }
+        return rv;
+    }
+
+    /**
+     * Reports information about the file system to System.out
+     * @return 0 on success and -1 on failure. 
+     */
+    public static int list() {
+        int rv = Kernel.interrupt(Kernel.INTERRUPT_USER, Kernel.LIST_FILES, 0, 0, null, null);
+        if (rv == 0) {
+            System.out.println("\nFile system information listed successfully.");
+        } else {
+            System.out.println("\nFile system information listing failed.");
+        }
+        return rv;
+    }
+
+    /**
+     * Deletes the file from the disk.
+     * @return 0 on success and -1 on failure. 
+     */
+    public static int delete(String fname) {
+        int rv = Kernel.interrupt(Kernel.INTERRUPT_USER, Kernel.DELETE_FILE, 0, fname, null, null);
+        if (rv == 0) {
+            System.out.println("\nFile " + fname + " deleted successfully.");
+        } else {
+            System.out.println("\nFile " + fname + " deletion failed.");
+        }
+        return rv;
+    }
+    
 } // Library

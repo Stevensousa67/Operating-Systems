@@ -1,8 +1,13 @@
 /* $Id: Disk.java,v 1.13 2004/03/31 17:36:35 solomon Exp solomon $ */
 
 import java.io.*;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.Arrays;
+import java.util.BitSet;
 
-/** A software simulation of a Disk.
+/**
+ * A software simulation of a Disk.
  * <p>
  * <b>You may not change this class.</b>
  * <p>
@@ -17,10 +22,10 @@ import java.io.*;
  * to let you know the Disk is ready for more.
  * <p>
  * It may take a while for the disk to seek from one block to another.
- * Seek time is proportional to the difference in block numbers of the 
+ * Seek time is proportional to the difference in block numbers of the
  * blocks.
  * <p>
- * <b>Warning:</b> Don't call beginRead() or beginWrite() while the 
+ * <b>Warning:</b> Don't call beginRead() or beginWrite() while the
  * disk is busy! If you don't treat
  * the Disk gently, the system will crash! (Just like a real machine!)
  * <p>
@@ -30,8 +35,13 @@ import java.io.*;
  *
  * @see Kernel
  */
+
 public class Disk implements Runnable {
-    /////////////////////////////////////////// Disk geometry parameters
+    public byte[] freeMap;
+    public String[] fileTable;
+
+    /** The maximum length of a file name in bytes. */
+    public static final int FILE_NAME_OFFSET = 100;
 
     /** The size of a disk block in bytes. */
     public static final int BLOCK_SIZE = 512;
@@ -50,22 +60,26 @@ public class Disk implements Runnable {
     /** An indication of whether an I/O operation is currently in progress. */
     protected boolean busy;
 
-    /** An indication whether the current I/O operation is a write operation.
+    /**
+     * An indication whether the current I/O operation is a write operation.
      * Only meaningful if busy == true.
      */
     private boolean isWriting;
 
-    /** The block number to be read/written by the current operation.
+    /**
+     * The block number to be read/written by the current operation.
      * Only meaningful if busy == true.
      */
     protected int targetBlock;
 
-    /** Memory buffer to/from which current I/O operation is transferring.
+    /**
+     * Memory buffer to/from which current I/O operation is transferring.
      * Only meaningful if busy == true.
      */
     private byte buffer[];
 
-    /** A flag set by beginRead or beginWrite to indicate that a request
+    /**
+     * A flag set by beginRead or beginWrite to indicate that a request
      * has been submitted.
      */
     private boolean requestQueued = false;
@@ -78,7 +92,8 @@ public class Disk implements Runnable {
 
     /////////////////////////////////////////// Inner classes
 
-    /** The exception thrown when an illegal operation is attempted on the
+    /**
+     * The exception thrown when an illegal operation is attempted on the
      * disk.
      */
     static protected class DiskException extends RuntimeException {
@@ -89,7 +104,8 @@ public class Disk implements Runnable {
 
     /////////////////////////////////////////// Constructors
 
-    /** Creates a new Disk.
+    /**
+     * Creates a new Disk.
      * If a Unix file named DISK exists in the local Unix directory, the
      * simulated disk contents are initialized from the Unix file.
      * It is an error if the DISK file exists but its size does not match
@@ -104,46 +120,36 @@ public class Disk implements Runnable {
         if (diskName.exists()) {
             if (diskName.length() != size * BLOCK_SIZE) {
                 throw new DiskException(
-                    "File DISK exists but is the wrong size");
+                        "File DISK exists but is the wrong size");
             }
         }
         this.DISK_SIZE = size;
         if (size < 1) {
             throw new DiskException("A disk must have at least one block!");
         }
-        // NOTE:  the "new" operator always clears the result object to nulls
+        int mapSize = new BigDecimal(DISK_SIZE / 8.0).setScale(0, RoundingMode.UP).intValue();
+        freeMap = new byte[mapSize];
+        fileTable = new String[size];
+        // NOTE: the "new" operator always clears the result object to nulls
         data = new byte[DISK_SIZE * BLOCK_SIZE];
-        int count = BLOCK_SIZE;
         try {
-            FileInputStream is = new FileInputStream("DISK");
-            is.read(data);
-            System.out.println("Restored " + count + " bytes from file DISK");
-            is.close();
-            return;
-        } catch (FileNotFoundException e) {
-            System.out.println("Creating new disk");
-        } catch (Exception e) {
+            if (diskName.exists()) {
+                try (FileInputStream is = new FileInputStream("DISK")) {
+                    is.read(data);
+                    System.out.println("Restored " + data.length + " bytes from file DISK");
+                }
+            } else {
+                System.out.println("Creating new disk");
+            }
+        } catch (IOException e) {
             e.printStackTrace();
             System.exit(1);
         }
-        byte[] junk = new byte[BLOCK_SIZE];
-        for (int i = 0; i < BLOCK_SIZE; ) {
-            junk[i++] = 74;
-            junk[i++] = 85;
-            junk[i++] = 78;
-            junk[i++] = 75;
-        }
-        for (int i = 1; i < DISK_SIZE; i++) {
-            System.arraycopy(
-                junk, 0,
-                data, i * BLOCK_SIZE,
-                BLOCK_SIZE);
-        }
-    } // constructor
-
+    }
     /////////////////////////////////////////// Methods
 
-    /** Saves the contents of this Disk.
+    /**
+     * Saves the contents of this Disk.
      * The contents of this disk will be forced out to a file named
      * DISK so that they can be restored on the next run of this program.
      * This file could be quite big, so delete it before you log out.
@@ -152,52 +158,53 @@ public class Disk implements Runnable {
     public void flush() {
         try {
             System.out.println("Saving contents to DISK file...");
-            FileOutputStream os = new FileOutputStream("DISK");
-            os.write(data);
-            os.close();
+            try (FileOutputStream os = new FileOutputStream("DISK")) {
+                os.write(data);
+            }
             System.out.println(readCount + " read operations and "
-                + writeCount + " write operations performed");
-        } catch(Exception e) {
-            e.printStackTrace();
+                    + writeCount + " write operations performed");
+        } catch (IOException e) {
             System.exit(1);
         }
-    } // flush
+    }
 
-    /** Sleeps for a while to simulate the delay in seeking and transferring
+    /**
+     * Sleeps for a while to simulate the delay in seeking and transferring
      * data.
+     * 
      * @param targetBlock the block number to which we have to seek.
      */
     protected void delay(int targetBlock) {
         int sleepTime = 10 + Math.abs(targetBlock - currentBlock) / 5;
         try {
             Thread.sleep(sleepTime);
-        } catch (Exception e) {
+        } catch (InterruptedException e) {
             e.printStackTrace();
         }
     } // delay
 
-    /** Starts a new read operation.
-    * @param blockNumber The block number to read from.
-    * @param buffer A data area to hold the data read.  This array must be
-    *               allocated by the caller and have length of at least
-    *               BLOCK_SIZE.  If it is larger, only the first BLOCK_SIZE
-    *               bytes of the array will be modified.
-    */
+    /**
+     * Starts a new read operation.
+     * 
+     * @param blockNumber The block number to read from.
+     * @param buffer      A data area to hold the data read. This array must be
+     *                    allocated by the caller and have length of at least
+     *                    BLOCK_SIZE. If it is larger, only the first BLOCK_SIZE
+     *                    bytes of the array will be modified.
+     */
     public synchronized void beginRead(int blockNumber, byte buffer[]) {
-        if (
-                blockNumber < 0
+        if (blockNumber < 0
                 || blockNumber >= DISK_SIZE
                 || buffer == null
-                || buffer.length < BLOCK_SIZE)
-        {
+                || buffer.length < BLOCK_SIZE) {
             throw new DiskException("Illegal disk read request: "
-                        + " block number " + blockNumber
-                        + " buffer " + buffer);
+                    + " block number " + blockNumber
+                    + " buffer " + Arrays.toString(buffer));
         }
 
         if (busy) {
             throw new DiskException("Disk read attempted "
-                        + " while the disk was still busy.");
+                    + " while the disk was still busy.");
         }
 
         isWriting = false;
@@ -208,28 +215,29 @@ public class Disk implements Runnable {
         notify();
     } // beginRead
 
-    /** Starts a new write operation.
-    * @param blockNumber The block number to write to.
-    * @param buffer A data area containing the data to be written.  This array
-    *               must be allocated by the caller and have length of at least
-    *               BLOCK_SIZE.  If it is larger, only the first BLOCK_SIZE
-    *               bytes of the array will be sent to the disk.
-    */
+    /**
+     * Starts a new write operation.
+     * 
+     * @param blockNumber The block number to write to.
+     * @param buffer      A data area containing the data to be written. This array
+     *                    must be allocated by the caller and have length of at
+     *                    least
+     *                    BLOCK_SIZE. If it is larger, only the first BLOCK_SIZE
+     *                    bytes of the array will be sent to the disk.
+     */
     public synchronized void beginWrite(int blockNumber, byte buffer[]) {
-        if (
-                blockNumber < 0
+        if (blockNumber < 0
                 || blockNumber >= DISK_SIZE
                 || buffer == null
-                || buffer.length < BLOCK_SIZE)
-        {
+                || buffer.length < BLOCK_SIZE) {
             throw new DiskException("Illegal disk write request: "
-                        + " block number " + blockNumber
-                        + " buffer " + buffer);
+                    + " block number " + blockNumber
+                    + " buffer " + Arrays.toString(buffer));
         }
 
         if (busy) {
             throw new DiskException("Disk write attempted "
-                        + " while the disk was still busy.");
+                    + " while the disk was still busy.");
         }
 
         isWriting = true;
@@ -242,10 +250,10 @@ public class Disk implements Runnable {
 
     /** Waits for a call to beginRead or beginWrite. */
     protected synchronized void waitForRequest() {
-        while(!requestQueued) {
+        while (!requestQueued) {
             try {
                 wait();
-            } catch (Exception e) {
+            } catch (InterruptedException e) {
                 e.printStackTrace();
             }
         }
@@ -259,17 +267,18 @@ public class Disk implements Runnable {
             busy = false;
             currentBlock = targetBlock;
         }
-        // NOTE:  The interrupt needs to be outside the critical section
-        // to avoid a race condition:  The interrupt handler in the kernel
+        // NOTE: The interrupt needs to be outside the critical section
+        // to avoid a race condition: The interrupt handler in the kernel
         // may wish to call beginRead or beginWrite (perhaps indirectly),
         // which would deadlock if the interrupt handler were invoked with
         // the disk mutex locked.
         Kernel.interrupt(Kernel.INTERRUPT_DISK,
-            0,0,null,null,null);
+                0, 0, null, null, null);
     } // finishOperation
 
-    /** This method simulates the internal microprocessor of the disk
-     * controler.  It repeatedly waits for a start signal, does an I/O
+    /**
+     * This method simulates the internal microprocessor of the disk
+     * controler. It repeatedly waits for a start signal, does an I/O
      * operation, and sends an interrupt to the CPU.
      * This method should <em>not</em> be called directly.
      */
@@ -283,20 +292,112 @@ public class Disk implements Runnable {
             // Move the data.
             if (isWriting) {
                 System.arraycopy(
-                    buffer, 0,
-                    data, targetBlock * BLOCK_SIZE,
-                    BLOCK_SIZE);
+                        buffer, 0,
+                        data, targetBlock * BLOCK_SIZE,
+                        BLOCK_SIZE);
                 writeCount++;
             } else {
                 System.arraycopy(
-                    data, targetBlock * BLOCK_SIZE,
-                    buffer, 0,
-                    BLOCK_SIZE);
+                        data, targetBlock * BLOCK_SIZE,
+                        buffer, 0,
+                        BLOCK_SIZE);
                 readCount++;
             }
 
             // Signal completion
             finishOperation();
         }
-    } // run
+    }
+
+    /**
+     * Creates a new disk when the "DISK" file cannot be found.
+     */
+    public void createNewDisk(){
+        int bitsSwitched = 0;
+        for (int i = 0; i < freeMap.length; i++) {
+            byte myByte = freeMap[i];
+            BitSet bits = Utilities.fromByte(myByte);
+            for (int j = 0; j < 8; j++) {
+                bits.set(j, true);
+                if (++bitsSwitched >= freeMap.length) {
+                    break;
+                }
+            }
+            freeMap[i] = Utilities.toByteArray(bits)[bits.length() / 8];
+            if (bitsSwitched >= freeMap.length) {
+                break;
+            }   
+        }
+        System.arraycopy(freeMap, 0, data, 0, freeMap.length);
+    }
+
+    /**
+     * Loads the disk when the "DISK" file exists.
+     */
+    public void loadDisk() {
+        System.arraycopy(data, 0, freeMap, 0, freeMap.length);
+        for (int i = 0; i < DISK_SIZE; i++) {
+            if (((freeMap[i / 8] >> (i % 8)) & 1) == 1) {
+                int byteIndex = i * BLOCK_SIZE;
+                byte[] fileName = new byte[FILE_NAME_OFFSET];
+                for (int j = 0; j < fileName.length; j++) {
+                    fileName[j] = data[byteIndex];
+                    byteIndex++;
+                }
+                fileTable[i] = new String(fileName).trim();
+            }
+        }
+    }
+
+    /**
+     * Returns the block number for the passed file name.
+     * 
+     * @param fileName
+     * @return int
+     */
+    public int getFileBlock(String fileName) {
+        int index = -1;
+        for (int i = 0; i < fileTable.length; i++) {
+            String systemFile = fileTable[i];
+            if (fileName.equals(systemFile)) {
+                index = i;
+            }
+            if (index != -1) {
+                break;
+            }
+        }
+        return index;
+    }
+
+    /**
+     * Returns the next available block number on the fisk.
+     * 
+     * @return int
+     */
+    public int getNextBlockIndex() {
+        int index = -1;
+        for (int i = 0; i < DISK_SIZE; i++) {
+            if (((freeMap[i / 8] >> (i % 8)) & 1) == 0) {
+                index = i;
+            }
+            if (index != -1) {
+                break;
+            }
+        }
+        return index;
+    }
+    
+    /**
+     * Updates the freeMap with the newly allocated block index.
+     * 
+     * @param blockIndex
+     */
+    public void setFreeMap(int blockIndex, boolean used) {
+        byte usedByte = freeMap[blockIndex / 8];
+        BitSet bits = Utilities.fromByte(usedByte);
+        int usedIndex = blockIndex % 8;
+        bits.set(usedIndex, used);
+        freeMap[blockIndex / 8] = Utilities.toByteArray(bits)[0];
+        System.arraycopy(freeMap, 0, data, 0, freeMap.length);
+    }
 } // Disk
